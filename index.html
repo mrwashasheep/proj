@@ -251,6 +251,84 @@
         function updatePins() {
             localStorage.setItem('pins', JSON.stringify(pins));
         }
+
+        // Add Export and Import buttons
+        const exportButton = document.createElement('button');
+        exportButton.textContent = 'Export Pins';
+        exportButton.style.margin = '5px';
+        exportButton.style.padding = '10px';
+        exportButton.style.position = 'absolute';
+        exportButton.style.bottom = '70px';
+        exportButton.style.right = '10px';
+        exportButton.style.backgroundColor = '#007bff';
+        exportButton.style.color = 'white';
+        exportButton.style.border = 'none';
+        exportButton.style.borderRadius = '5px';
+        exportButton.style.cursor = 'pointer';
+        exportButton.style.zIndex = '1000';
+        exportButton.onclick = exportPins;
+
+        const importButton = document.createElement('button');
+        importButton.textContent = 'Import Pins';
+        importButton.style.margin = '5px';
+        importButton.style.padding = '10px';
+        importButton.style.position = 'absolute';
+        importButton.style.bottom = '10px';
+        importButton.style.right = '10px';
+        importButton.style.backgroundColor = '#007bff';
+        importButton.style.color = 'white';
+        importButton.style.border = 'none';
+        importButton.style.borderRadius = '5px';
+        importButton.style.cursor = 'pointer';
+        importButton.style.zIndex = '1000';
+        importButton.onclick = () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = importPins;
+            input.click();
+        };
+
+        document.body.appendChild(exportButton);
+        document.body.appendChild(importButton);
+
+        // Function to export pins to a JSON file
+        function exportPins() {
+            const data = JSON.stringify(pins, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'pins-data.json';
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // Function to import pins from a JSON file
+        function importPins(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const importedPins = JSON.parse(e.target.result);
+                    if (Array.isArray(importedPins)) {
+                        pins = importedPins;
+                        markers.clearLayers();
+                        pins.forEach(addPinToMap);
+                        updatePins();
+                    } else {
+                        alert('Invalid file format. Please upload a valid pins JSON file.');
+                    }
+                } catch (error) {
+                    alert('Error reading file. Please ensure it is a valid JSON file.');
+                }
+            };
+            reader.readAsText(file);
+        }
     </script>
 </body>
 </html>
