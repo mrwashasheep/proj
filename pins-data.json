@@ -1,0 +1,65 @@
+[
+  {
+    "lat": 40.90419344745432,
+    "lng": -120.5962371826172,
+    "title": "termo Air strip",
+    "description": "Small airstip for Termo Destinations",
+    "image": "",
+    "category": "Airstrip",
+    "budget": "",
+    "status": "Planned"
+  },
+  {
+    "lat": 31.88778381337545,
+    "lng": -105.30120849609376,
+    "title": "TX Race Track and campground",
+    "category": "Airstrip",
+    "description": "small airswtip with auto race track",
+    "budget": "",
+    "image": "",
+    "status": "Planned",
+    "url": "undefined"
+  },
+  {
+    "lat": 40.817498062250486,
+    "lng": -120.55521011352539,
+    "title": "20 Acre Dirt Bike Track",
+    "category": "Dirt Bike Track",
+    "description": "Termo Destination with dirt bikes and tiny homes",
+    "budget": "",
+    "image": "",
+    "status": "Planned"
+  },
+  {
+    "lat": 42.17623526731521,
+    "lng": -76.44059658050539,
+    "title": "Spencer NY Snowmobiling ",
+    "category": "Snowmobile Trails",
+    "description": "10 acre property for snow activities and tiny homes. has full utilities already needs slabs and development",
+    "budget": "",
+    "image": "",
+    "status": "In Progress"
+  },
+  {
+    "lat": 35.735625144242526,
+    "lng": -87.62489318847656,
+    "title": "Peacefull Hills Retreat",
+    "category": "Campground",
+    "description": "Centerville TN 116 acre property fully functional camping, hunting, bike trails. ",
+    "budget": "",
+    "image": "",
+    "status": "Operational",
+    "url": "https://peacefulhillsretreat.com/"
+  },
+  {
+    "lat": 38.67676706655833,
+    "lng": -121.44390106201173,
+    "title": "Bell Aqcua/ Airport",
+    "category": "Airstrip",
+    "description": "Bell Aqcua Water ski school with airstrip directly next door. fully operational with 2 rentable trailers and portapotty ",
+    "budget": "",
+    "image": "",
+    "status": "Operational",
+    "url": "https://bellacqualake.com/"
+  }
+]
