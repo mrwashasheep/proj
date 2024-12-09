@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive US Map - Recreation Properties</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <style>
+        #map {
+            height: 90vh;
+            width: 100%;
+        }
+        #form-container {
+            position: fixed;
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 1rem;
+            z-index: 1000;
+            display: none;
+        }
+        .form-input, textarea, input[type="file"] {
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+        button {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            margin-right: 0.5rem;
+        }
+        .edit-btn {
+            color: white;
+            background-color: #007bff;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .edit-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <!-- Form to Add/Edit Pin Details -->
+    <div id="form-container">
+        <h3 id="form-title">Add Pin Details</h3>
+        <label for="pin-title">Title:</label>
+        <input id="pin-title" type="text" class="form-input" placeholder="Enter title">
+
+        <label for="pin-category">Category:</label>
+        <select id="pin-category" class="form-input">
+            <option value="Airstrip">Airstrip</option>
+            <option value="Dirt Bike Track">Dirt Bike Track</option>
+            <option value="Snowmobile Trails">Snowmobile Trails</option>
+            <option value="Campground">Campground</option>
+            <option value="Other">Other</option>
+        </select>
+
+        <label for="pin-description">Description:</label>
+        <textarea id="pin-description" rows="3" placeholder="Enter description"></textarea>
+
+        <label for="pin-budget">Estimated Budget ($):</label>
+        <input id="pin-budget" type="number" class="form-input" placeholder="Enter budget">
+
+        <label for="pin-image">Image URL:</label>
+        <input id="pin-image" type="text" class="form-input" placeholder="Enter image URL">
+
+        <label for="pin-url">Website URL:</label>
+        <input id="pin-url" type="url" class="form-input" placeholder="Enter website URL">
+
+        <label for="pin-document">Upload Document:</label>
+        <input id="pin-document" type="file" class="form-input">
+
+        <label for="pin-status">Development Status:</label>
+        <select id="pin-status" class="form-input">
+            <option value="Planned">Planned</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Operational">Operational</option>
+        </select>
+
+        <button id="save-pin">Save</button>
+        <button id="cancel-pin">Cancel</button>
+    </div>
+
+    <script>
+        const map = L.map('map').setView([37.8, -96], 4);
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        const markers = L.markerClusterGroup({
+            spiderfyOnMaxZoom: true,
+            maxClusterRadius: 20,
+        });
+
+        let pins = JSON.parse(localStorage.getItem('pins')) || [];
+        const formContainer = document.getElementById('form-container');
+        const pinTitle = document.getElementById('pin-title');
+        const pinCategory = document.getElementById('pin-category');
+        const pinDescription = document.getElementById('pin-description');
+        const pinBudget = document.getElementById('pin-budget');
+        const pinImage = document.getElementById('pin-image');
+        const pinUrl = document.getElementById('pin-url');
+        const pinDocument = document.getElementById('pin-document');
+        const pinStatus = document.getElementById('pin-status');
+        const formTitle = document.getElementById('form-title');
+        let currentLatLng = null;
+        let editingPin = null;
+
+        const markerColors = {
+            Planned: "red",
+            "In Progress": "yellow",
+            Operational: "green"
+        };
+
+        function createColoredIcon(color) {
+            return new L.Icon({
+                iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-${color}.png`,
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41]
+            });
+        }
+
+        pins.forEach(addPinToMap);
+        map.addLayer(markers);
+
+        map.on('click', (e) => {
+            const { lat, lng } = e.latlng;
+            openForm(lat, lng, "Add Pin Details");
+        });
+
+        function openForm(lat, lng, title = "Add Pin Details", pin = null) {
+            formTitle.textContent = title;
+            formContainer.style.display = 'block';
+            currentLatLng = { lat, lng };
+            editingPin = pin;
+
+            if (pin) {
+                pinTitle.value = pin.title;
+                pinCategory.value = pin.category;
+                pinDescription.value = pin.description;
+                pinBudget.value = pin.budget;
+                pinImage.value = pin.image;
+                pinUrl.value = pin.url;
+                pinStatus.value = pin.status;
+            } else {
+                pinTitle.value = '';
+                pinCategory.value = 'Airstrip';
+                pinDescription.value = '';
+                pinBudget.value = '';
+                pinImage.value = '';
+                pinUrl.value = '';
+                pinStatus.value = 'Planned';
+            }
+        }
+
+        function closeForm() {
+            formContainer.style.display = 'none';
+            currentLatLng = null;
+            editingPin = null;
+        }
+
+        document.getElementById('save-pin').addEventListener('click', () => {
+            const title = pinTitle.value;
+            const category = pinCategory.value;
+            const description = pinDescription.value;
+            const budget = pinBudget.value;
+            const image = pinImage.value;
+            const url = pinUrl.value;
+            const status = pinStatus.value;
+
+            const file = pinDocument.files[0];
+            const documentUrl = file ? URL.createObjectURL(file) : editingPin?.documentUrl;
+
+            if (!title) {
+                alert('Please provide a title!');
+                return;
+            }
+
+            if (editingPin) {
+                Object.assign(editingPin, { title, category, description, budget, image, url, status, documentUrl });
+                updatePins();
+            } else {
+                const pin = { lat: currentLatLng.lat, lng: currentLatLng.lng, title, category, description, budget, image, url, status, documentUrl };
+                pins.push(pin);
+                addPinToMap(pin);
+                updatePins();
+            }
+
+            closeForm();
+        });
+
+        document.getElementById('cancel-pin').addEventListener('click', closeForm);
+
+        function addPinToMap(pin) {
+            const marker = L.marker([pin.lat, pin.lng], {
+                icon: createColoredIcon(markerColors[pin.status]),
+                draggable: true
+            }).addTo(markers);
+
+            function refreshPopup() {
+                const popupContent = getPopupContent(pin);
+                marker.bindPopup(popupContent);
+            }
+
+            marker.on('dragend', (e) => {
+                const newLatLng = marker.getLatLng();
+                pin.lat = newLatLng.lat;
+                pin.lng = newLatLng.lng;
+                updatePins();
+            });
+
+            refreshPopup();
+        }
+
+        function getPopupContent(pin) {
+            let content = `<h4>${pin.title}</h4>
+                    <p><b>Category:</b> ${pin.category}</p>
+                    <p><b>Status:</b> ${pin.status}</p>
+                    <p><b>Budget:</b> $${pin.budget}</p>
+                    <p>${pin.description}</p>`;
+
+            if (pin.image) content += `<img src="${pin.image}" alt="${pin.title}" style="width:100%;max-height:200px;">`;
+            if (pin.url) content += `
+                <p><a href="${pin.url}" target="_blank">Visit Website</a></p>`;
+            if (pin.documentUrl) content += `<p><a href="${pin.documentUrl}" target="_blank">View Document</a></p>`;
+            content += `<button class="edit-btn" onclick="editPin('${pin.title}')">Edit</button>`;
+
+            return content;
+        }
+
+        function editPin(title) {
+            const pin = pins.find(p => p.title === title);
+            if (pin) openForm(pin.lat, pin.lng, "Edit Pin Details", pin);
+        }
+
+        function updatePins() {
+            localStorage.setItem('pins', JSON.stringify(pins));
+        }
+    </script>
+</body>
+</html>
